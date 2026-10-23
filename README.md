@@ -46,6 +46,18 @@ Scope {
 }
 ```
 
+A plugin can also put an island in the bar: a `barWidget` property that is a
+`Component`, and a `barSlot`, `"left"` or `"right"` (the default), for the side:
+
+```qml
+Scope {
+    property string barSlot: "right"
+    property Component barWidget: Component {
+        StyledText { text: "✦" }
+    }
+}
+```
+
 `outputName` is set right after the plugin is created, and follows the output
 the shell is on, so react to it changing rather than reading it once.
 
@@ -89,6 +101,7 @@ name, the first folder's wins.
 | `available` | What was found: `name`, `title`, `version`, `description`, `author`, `entry`, `api`, `dir` and whether it is `enabled`, `running` or has an `error`. |
 | `enabled`, `dirs` | What `plugins.toml` says. |
 | `running` | The names of the plugins that are running. |
+| `barWidgets` | The islands the running plugins want in the bar, `{ name, slot, component }`, for `Bar { extras: plugins.barWidgets }`. |
 | `reload()` | Loads the whole shell again, which runs the edited files of a plugin. |
 
 IPC: `qs -c shell ipc call plugins list` shows each plugin and what is wrong with
