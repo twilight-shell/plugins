@@ -79,7 +79,9 @@ enabled = ["weather"]
 ```
 
 Changing either file takes effect at once: plugins are started and stopped to
-match. If two folders hold a plugin of one name, the first folder's wins.
+match. So does a plugin folder that is added or removed, a second or so after.
+The first folder is made if it isn't there. If two folders hold a plugin of one
+name, the first folder's wins.
 
 | | |
 |---|---|
@@ -90,7 +92,8 @@ match. If two folders hold a plugin of one name, the first folder's wins.
 | `reload()` | Loads the whole shell again, which runs the edited files of a plugin. |
 
 IPC: `qs -c shell ipc call plugins list` shows each plugin and what is wrong with
-it, `plugins reload` loads the shell again. A plugin that doesn't load is reported in the
+it, `plugins scan` looks in the folders again (a plugin whose files changed in
+place, say), `plugins reload` loads the shell again. A plugin that doesn't load is reported in the
 shell's log and in `list`, and the others go on running.
 
 ## What to know
