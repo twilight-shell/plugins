@@ -1,0 +1,7 @@
+# Folders searched for plugins: each holds one folder per plugin, and a plugin
+# folder has a plugin.toml. The user's own plugins go in the first one.
+dirs = ["~/.local/share/twilight-shell/plugins", "/usr/share/twilight-shell/plugins"]
+
+# The plugins that run, by name. A plugin that isn't listed here doesn't run,
+# however it got into one of the folders.
+enabled = []
