@@ -1,5 +1,7 @@
 # twilight-shell/plugins
 
+[![ci](https://github.com/twilight-shell/plugins/actions/workflows/ci.yml/badge.svg)](https://github.com/twilight-shell/plugins/actions/workflows/ci.yml)
+
 Plugins for the [twilight-shell](https://github.com/twilight-shell)
 organization's shell: this finds them, and runs the ones that are switched on.
 A plugin is a folder with a `plugin.toml` and some QML; it can draw windows,
@@ -126,6 +128,10 @@ Needs [Quickshell](https://quickshell.org) 0.3 or newer, with
 ```sh
 sudo make install        # to /usr/lib/qt6/qml/Twilight/Plugins
 ```
+
+## Contributing
+
+Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). Agents and the like: [AGENTS.md](AGENTS.md).
 
 ## License
 
