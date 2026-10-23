@@ -17,7 +17,9 @@ import Twilight.Core
 //     api = 1                     # the version of this interface it was made for
 //
 // The entry is any QML, usually a Scope with windows of its own. If it has
-// an `outputName` property, the output the shell is on is set there.
+// an `outputName` property, the output the shell is on is set there. If it has
+// a `barWidget` property, a Component, the bar shows an island with it, on the
+// side `barSlot` names, "left" or "right" (the default).
 //
 // IPC: `qs -c shell ipc call plugins list`, `plugins scan`, `plugins reload` (the whole shell
 // is loaded again, which runs the edited files of a plugin)
@@ -41,6 +43,10 @@ Scope {
 
     // The version of the interface a plugin has to ask for, or lower.
     readonly property int api: 1
+
+    // The islands for the bar from the running plugins, for the host to hand to
+    // it: [{ name, slot, component }].
+    property var barWidgets: []
 
     // The names of the plugins that are running.
     property var running: []
@@ -107,15 +113,30 @@ Scope {
 
         objects[p.name] = object;
         running = Object.keys(objects);
+        collect();
         const rest = Object.assign({}, errors);
         delete rest[p.name];
         errors = rest;
     }
 
     function stop(name: string): void {
-        objects[name].destroy();
+        const object = objects[name];
         delete objects[name];
         running = Object.keys(objects);
+        // The bar lets go of the plugin's component before the plugin goes.
+        collect();
+        Qt.callLater(() => object.destroy());
+    }
+
+    // The bar widgets of the plugins that are running.
+    function collect(): void {
+        barWidgets = Object.keys(objects)
+            .filter(name => objects[name].barWidget)
+            .map(name => ({
+                name: name,
+                slot: objects[name].barSlot === "left" ? "left" : "right",
+                component: objects[name].barWidget
+            }));
     }
 
     // Qt keeps the QML it has loaded, so the only way to run the edited files of
