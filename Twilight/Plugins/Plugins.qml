@@ -1,4 +1,6 @@
 import QtQuick
+import QtQml.Models
+import Qt.labs.folderlistmodel
 import Quickshell
 import Quickshell.Io
 import Twilight.Core
@@ -17,7 +19,7 @@ import Twilight.Core
 // The entry is any QML, usually a Scope with windows of its own. If it has
 // an `outputName` property, the output the shell is on is set there.
 //
-// IPC: `qs -c shell ipc call plugins list`, `plugins reload` (the whole shell
+// IPC: `qs -c shell ipc call plugins list`, `plugins scan`, `plugins reload` (the whole shell
 // is loaded again, which runs the edited files of a plugin)
 Scope {
     id: root
@@ -155,9 +157,71 @@ Scope {
         defaults: Qt.resolvedUrl("plugins.defaults.toml")
     }
 
-    onDirsChanged: scan()
+    onDirsChanged: {
+        prepare();
+        scan();
+    }
     onEnabledChanged: sync()
-    Component.onCompleted: scan()
+    Component.onCompleted: {
+        prepare();
+        scan();
+    }
+
+    // The first folder is where your own plugins go: make it, so there is
+    // something to watch.
+    property bool watching: false
+    property bool prepareAgain: false
+
+    // Makes the first folder, then watches the folders: watching one that isn't
+    // there yet never starts, so this runs again whenever the folders change.
+    function prepare(): void {
+        watching = false;
+        if (mkdir.running) {
+            prepareAgain = true;
+            return;
+        }
+        if (dirs.length > 0)
+            mkdir.running = true;
+        else
+            watching = true;
+    }
+
+    Process {
+        id: mkdir
+
+        command: ["mkdir", "-p", root.dirs[0] ?? "."]
+        onExited: {
+            if (root.prepareAgain) {
+                root.prepareAgain = false;
+                root.prepare();
+            } else {
+                root.watching = true;
+            }
+        }
+    }
+
+    // A plugin folder that is added or removed is noticed. A clone makes the
+    // folder before it fills it, so the look waits a moment for the files.
+    Instantiator {
+        active: root.watching
+        model: root.dirs
+
+        delegate: FolderListModel {
+            required property string modelData
+
+            folder: "file://" + modelData
+            showFiles: false
+            showDotAndDotDot: false
+            onCountChanged: settle.restart()
+        }
+    }
+
+    Timer {
+        id: settle
+
+        interval: 1000
+        onTriggered: root.scan()
+    }
 
     Process {
         id: finder
@@ -196,6 +260,10 @@ Scope {
 
         function list(): string {
             return root.available.map(p => p.name + (p.running ? " (running)" : p.enabled ? " (enabled)" : "") + (p.error ? " - " + p.error.split("\n")[0] : "")).join("\n");
+        }
+
+        function scan(): void {
+            root.scan();
         }
 
         function reload(): void {
